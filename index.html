@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carro Three.js</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+        <div id="score">Press UP</div>
+
+    <div id="controls">
+        <div id="buttons">
+            <button id="accelerate">
+                <svg width="30" height="30" viewBox="0 0 10 10">
+                    <g transform="rotate(0, 5,5)">
+                        <path d="M5,4 L7,6 L3,6 L5,4" />
+                    </g>
+                </svg>
+             </button>
+            <button id="decelerate">
+                <svg width="30" height="30" viewBox="0 0 10 10">
+                    <g transform="rotate(180, 5,5)">
+                        <path d="M5,4 L7,6 L3,6 L5,4" />
+                    </g>
+                </svg>
+            </button>
+        </div>
+
+        <div id="instructions">
+            Press UP to start. Avoid collision with other vehicles by accelerating
+            or decelerating with the UP and DOWN keys.
+        </div>
+    
+        <div id="results">
+            <div> class="content">
+                <h1>You hit another vehicle</h1>
+                <p>To reset the game press R</p>
+            </div>
+        </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>
+
+
+
+
