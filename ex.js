@@ -279,7 +279,8 @@ function getCurbsTexture(mapWidth, mapHeight) {
     mapHeight / 2,
     innerTrackRadius,
     arcAngle1,
-    -arcAngle1
+    -arcAngle1,
+    false
   );
   context.arc(
     mapWidth / 2 + arcCenterX,
@@ -297,7 +298,8 @@ function getCurbsTexture(mapWidth, mapHeight) {
     mapHeight / 2,
     innerTrackRadius,
     Math.PI + arcAngle1,
-    Math.PI - arcAngle1
+    Math.PI - arcAngle1,
+    false
   );
   context.arc(
     mapWidth / 2 - arcCenterX,
@@ -318,7 +320,8 @@ function getCurbsTexture(mapWidth, mapHeight) {
     mapHeight / 2,
     innerTrackRadius,
     arcAngle1,
-    -arcAngle1
+    -arcAngle1,
+    false
   );
   context.arc(
     mapWidth / 2 + arcCenterX,
@@ -333,7 +336,8 @@ function getCurbsTexture(mapWidth, mapHeight) {
     mapHeight / 2,
     innerTrackRadius,
     Math.PI + arcAngle1,
-    Math.PI - arcAngle1
+    Math.PI - arcAngle1,
+    true
   );
   context.arc(
     mapWidth / 2 - arcCenterX,
@@ -836,6 +840,11 @@ function Tree() {
   tree.add(crown);
 
   return tree;
+}
+
+// Garantir que THREE esteja disponível globalmente
+if (typeof THREE === 'undefined') {
+  throw new Error('THREE is not defined. Ensure Three.js is loaded correctly.');
 }
 
 accelerateButton.addEventListener("mousedown", function () {
