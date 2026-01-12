@@ -1,21 +1,4 @@
-/*
-
-Three.js video tutorial explaining the source code
-
-Youtube: https://youtu.be/JhgBwJn1bQw
-
-In the tutorial, we go through the source code of this game. We cover, how to set up a Three.js scene with box objects, how to add lights, how to set up the camera, how to add animation and event handlers. We also add textures with HTML Canvas and learn how to draw 2D shapes in Three.js then how to turn them into extruded geometries.
-
-Comparing to the tutorial this version has some extra features:
-- trucks also pop up on the other track
-- the extruded geometry also has a texture
-- there are trees around the track
-- shadows
-- the game reacts to window resizing
-
-Check out my YouTube channel for other game tutorials: https://www.youtube.com/channel/UCxhgW0Q5XLvIoXHAfQXg9oQ
-
-*/
+import * as THREE from 'three';
 
 window.focus(); // Capture keys right away (by default focus is on editor)
 
@@ -45,9 +28,9 @@ const edgeColor = "#725F48";
 const treeCrownColor = 0x498c2c;
 const treeTrunkColor = 0x4b3f2f;
 
-const wheelGeometry = new THREE.BoxBufferGeometry(12, 33, 12);
+const wheelGeometry = new THREE.BoxGeometry(12, 33, 12);
 const wheelMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
-const treeTrunkGeometry = new THREE.BoxBufferGeometry(15, 15, 30);
+const treeTrunkGeometry = new THREE.BoxGeometry(15, 15, 30);
 const treeTrunkMaterial = new THREE.MeshLambertMaterial({
   color: treeTrunkColor
 });
@@ -104,8 +87,8 @@ const youtubeLogo = document.getElementById("youtube-main");
 
 setTimeout(() => {
   if (ready) instructionsElement.style.opacity = 1;
-  buttonsElement.style.opacity = 1;
-  youtubeLogo.style.opacity = 1;
+  //buttonsElement.style.opacity = 1;
+  //youtubeLogo.style.opacity = 1;
 }, 4000);
 
 // Initialize ThreeJs
@@ -191,7 +174,7 @@ function reset() {
   });
   otherVehicles = [];
 
-  resultsElement.style.display = "none";
+  //resultsElement.style.display = "none";
 
   lastTimestamp = undefined;
 
@@ -208,9 +191,9 @@ function startGame() {
   if (ready) {
     ready = false;
     scoreElement.innerText = 0;
-    buttonsElement.style.opacity = 1;
-    instructionsElement.style.opacity = 0;
-    youtubeLogo.style.opacity = 1;
+    //buttonsElement.style.opacity = 1;
+    //instructionsElement.style.opacity = 0;
+    //youtubeLogo.style.opacity = 1;
     renderer.setAnimationLoop(animation);
   }
 }
@@ -229,7 +212,7 @@ function getLineMarkings(mapWidth, mapHeight) {
   canvas.height = mapHeight;
   const context = canvas.getContext("2d");
 
-  context.fillStyle = trackColor;
+  context.fillStyle = "#546E90";
   context.fillRect(0, 0, mapWidth, mapHeight);
 
   context.lineWidth = 2;
@@ -500,7 +483,7 @@ function getOuterField(mapWidth, mapHeight) {
 function renderMap(mapWidth, mapHeight) {
   const lineMarkingsTexture = getLineMarkings(mapWidth, mapHeight);
 
-  const planeGeometry = new THREE.PlaneBufferGeometry(mapWidth, mapHeight);
+  const planeGeometry = new THREE.PlaneGeometry(mapWidth, mapHeight);
   const planeMaterial = new THREE.MeshLambertMaterial({
     map: lineMarkingsTexture
   });
@@ -523,7 +506,7 @@ function renderMap(mapWidth, mapHeight) {
   curbsTexture.repeat.set(1 / mapWidth, 1 / mapHeight);
 
   // An extruded geometry turns a 2D shape into 3D by giving it a depth
-  const fieldGeometry = new THREE.ExtrudeBufferGeometry(
+  const fieldGeometry = new THREE.ExtrudeGeometry(
     [islandLeft, islandRight, islandMiddle, outerField],
     { depth: 6, bevelEnabled: false }
   );
@@ -651,7 +634,7 @@ function Car() {
   const color = pickRandom(vehicleColors);
 
   const main = new THREE.Mesh(
-    new THREE.BoxBufferGeometry(60, 30, 15),
+    new THREE.BoxGeometry(60, 30, 15),
     new THREE.MeshLambertMaterial({ color })
   );
   main.position.z = 12;
@@ -672,7 +655,7 @@ function Car() {
 
   const carRightSideTexture = getCarSideTexture();
 
-  const cabin = new THREE.Mesh(new THREE.BoxBufferGeometry(33, 24, 12), [
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(33, 24, 12), [
     new THREE.MeshLambertMaterial({ map: carFrontTexture }),
     new THREE.MeshLambertMaterial({ map: carBackTexture }),
     new THREE.MeshLambertMaterial({ map: carLeftSideTexture }),
@@ -737,14 +720,14 @@ function Truck() {
   const color = pickRandom(vehicleColors);
 
   const base = new THREE.Mesh(
-    new THREE.BoxBufferGeometry(100, 25, 5),
+    new THREE.BoxGeometry(100, 25, 5),
     new THREE.MeshLambertMaterial({ color: 0xb4c6fc })
   );
   base.position.z = 10;
   truck.add(base);
 
   const cargo = new THREE.Mesh(
-    new THREE.BoxBufferGeometry(75, 35, 40),
+    new THREE.BoxGeometry(75, 35, 40),
     new THREE.MeshLambertMaterial({ color: 0xffffff }) // 0xb4c6fc
   );
   cargo.position.x = -15;
@@ -762,7 +745,7 @@ function Truck() {
 
   const truckRightTexture = getTruckSideTexture();
 
-  const cabin = new THREE.Mesh(new THREE.BoxBufferGeometry(25, 30, 30), [
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(25, 30, 30), [
     new THREE.MeshLambertMaterial({ color, map: truckFrontTexture }),
     new THREE.MeshLambertMaterial({ color }), // back
     new THREE.MeshLambertMaterial({ color, map: truckLeftTexture }),
@@ -847,20 +830,6 @@ if (typeof THREE === 'undefined') {
   throw new Error('THREE is not defined. Ensure Three.js is loaded correctly.');
 }
 
-accelerateButton.addEventListener("mousedown", function () {
-  startGame();
-  accelerate = true;
-});
-decelerateButton.addEventListener("mousedown", function () {
-  startGame();
-  decelerate = true;
-});
-accelerateButton.addEventListener("mouseup", function () {
-  accelerate = false;
-});
-decelerateButton.addEventListener("mouseup", function () {
-  decelerate = false;
-});
 window.addEventListener("keydown", function (event) {
   if (event.key == "ArrowUp") {
     startGame();

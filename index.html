@@ -1,60 +1,64 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Carro Three.js</title>
+    <title>Meu Jogo de Carros 3D</title>
     <style>
-        body { margin: 0; overflow: hidden; }
-        canvas { display: block; }
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Remove as barras de rolagem */
+            background-color: #546E90;
+            font-family: 'Arial', sans-serif;
+        }
+
+        /* Estilização do Placar */
+        #score-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 100; /* Garante que fica por cima do canvas */
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Instruções no ecrã */
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            z-index: 100;
+        }
     </style>
 </head>
 <body>
-        <div id="score">Press UP</div>
 
-    <div id="controls">
-        <div id="buttons">
-            <button id="accelerate">
-                <svg width="30" height="30" viewBox="0 0 10 10">
-                    <g transform="rotate(0, 5,5)">
-                        <path d="M5,4 L7,6 L3,6 L5,4" />
-                    </g>
-                </svg>
-             </button>
-            <button id="decelerate">
-                <svg width="30" height="30" viewBox="0 0 10 10">
-                    <g transform="rotate(180, 5,5)">
-                        <path d="M5,4 L7,6 L3,6 L5,4" />
-                    </g>
-                </svg>
-            </button>
-        </div>
+    <div id="score-container">
+        SCORE: <span id="score">0</span>
+    </div>
 
-        <div id="instructions">
-            Press UP to start. Avoid collision with other vehicles by accelerating
-            or decelerating with the UP and DOWN keys.
-        </div>
-    
-        <div id="results">
-            <div class="content">
-                <h1>You hit another vehicle</h1>
-                <p>To reset the game press R</p>
-            </div>
-        </div>
+    <div id="instructions">
+        SETAS: Acelerar/Travar | R: Reiniciar
+    </div>
 
     <script type="importmap">
         {
-          "imports": {
-            "three": "https://unpkg.com/three/build/three.module.js",
-            "three/addons/": "https://unpkg.com/three/examples/jsm/"
-          }
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
         }
     </script>
 
-    <script type="module" src="main.js"></script>
+    <script type="module" src="main.js">
+    </script>
+
 </body>
 </html>
-
-
 
 
