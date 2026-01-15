@@ -1,0 +1,89 @@
+/* Importar fonte futurista */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #1a1a1a;
+    font-family: 'Orbitron', sans-serif;
+}
+
+/* Contentor do Score no topo esquerdo */
+#score-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #00f5ff; /* Ciano neon */
+    padding: 15px 25px;
+    border-radius: 12px;
+    border: 2px solid #00f5ff;
+    font-size: 24px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    box-shadow: 0 0 15px rgba(0, 245, 255, 0.3);
+    pointer-events: none;
+    z-index: 100;
+}
+
+#score {
+    color: #ffffff;
+    text-shadow: 0 0 8px #00f5ff;
+}
+
+/* Barra de Instruções no fundo */
+#instructions {
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.75);
+    color: #ffffff;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    gap: 25px;
+    white-space: nowrap;
+    backdrop-filter: blur(8px); /* Efeito de vidro fosco */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+}
+
+/* Estilo para destacar as teclas */
+.key {
+    color: #39FF14; /* Verde neon para as teclas */
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 3px 8px;
+    border-radius: 5px;
+    border-bottom: 3px solid #39FF14;
+    margin-right: 5px;
+}
+
+/* Ajustes para ecrãs pequenos */
+@media (max-width: 768px) {
+    #instructions {
+        gap: 10px;
+        padding: 10px 15px;
+        font-size: 10px;
+        flex-wrap: wrap;
+        width: 80%;
+        justify-content: center;
+        border-radius: 20px;
+    }
+    
+    #score-container {
+        font-size: 18px;
+        padding: 10px;
+    }
+}
+
+/* Remover contorno azul ao clicar no canvas */
+canvas {
+    outline: none;
+}

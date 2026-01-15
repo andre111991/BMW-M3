@@ -4,37 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Jogo de Carros 3D</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden; /* Remove as barras de rolagem */
-            background-color: #546E90;
-            font-family: 'Arial', sans-serif;
-        }
-
-        /* Estilização do Placar */
-        #score-container {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            z-index: 100; /* Garante que fica por cima do canvas */
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-
-        /* Instruções no ecrã */
-        #instructions {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 14px;
-            z-index: 100;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -43,7 +13,10 @@
     </div>
 
     <div id="instructions">
-        SETAS: Acelerar/Travar | R: Reiniciar
+        <span><span class="key">↑ / ↓</span> ACELERAR / TRAVAR</span>
+        <span><span class="key">R</span> REINICIAR</span>
+        <span><span class="key">P</span> PORTÃO</span>
+        <span><span class="key">C / V</span> CAPÔ / PORTAS</span>
     </div>
 
     <script type="importmap">
@@ -55,10 +28,7 @@
         }
     </script>
 
-    <script type="module" src="main.js">
-    </script>
+    <script type="module" src="main.js"></script>
 
 </body>
 </html>
-
-

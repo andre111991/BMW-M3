@@ -25,7 +25,7 @@ const angulo4 = Math.acos(centro1 / circunferenciaFora);
 const ListaCores = [ 0x00F5FF, 0xFF00FF, 0x7000FF,0xFF5F1F,0x39FF14,0xFF3131 ]
 let accelerate = false;
 let decelerate = false;
-const playerCar = Car(true) // true indica que é o carro do jogador
+const playerCar = Car()
 scene.add(playerCar)
 
 //...............................luzes...................................................
@@ -40,7 +40,7 @@ scene.add(directionalLight);
 //................................Camera................................................
 
 const aspectratio = window.innerWidth / window.innerHeight;
-const camerawidth = 1500;
+const camerawidth = 960;
 const cameraheight = camerawidth / aspectratio;
 
 const camera = new THREE.OrthographicCamera(            // diferente da camera das aulas
@@ -48,15 +48,12 @@ const camera = new THREE.OrthographicCamera(            // diferente da camera d
     camerawidth / 2,
     cameraheight / 2,
     cameraheight / -2,
-    1,                              //plano perto e plano longe 
-    2300
+    0,                              //plano perto e plano longe 
+    1000
 );
 
 camera.position.set(0,-210,300);
 camera.lookAt(0,0,0);
-
-// Declarar variável do portão antes de renderMap
-let articulatedGate = null;
 
 renderMap(camerawidth, cameraheight*2);
 
@@ -164,25 +161,6 @@ function renderMap(mapWidth, mapHeight) {
     tree14.position.y = -centro1 * 1.8;
     scene.add(tree14);
   }
-
-  // Adicionar portão articulado no círculo direito (onde circulam os outros veículos)
-  // Posicionar na parte superior do círculo (ângulo Math.PI/2)
-  articulatedGate = ArticulatedGate();
-  const gateAngle = Math.PI / 2; // Posição na parte superior do círculo (90 graus)
-  const gateCenterX = centro1 + Math.cos(gateAngle) * raioPista;
-  const gateCenterY = Math.sin(gateAngle) * raioPista;
-  
-  articulatedGate.position.x = gateCenterX;
-  articulatedGate.position.y = gateCenterY;
-  // Rotacionar o portão para ficar perpendicular à direção tangencial da pista
-  // A direção tangencial em Math.PI/2 é horizontal (esquerda-direita)
-  articulatedGate.rotation.z = gateAngle - Math.PI / 2; // Rotacionar para ficar horizontal
-  articulatedGate.userData.gatePosition = {
-    x: gateCenterX,
-    y: gateCenterY,
-    angle: gateAngle
-  };
-  scene.add(articulatedGate);
 }
 
 //................................... ilhas......................................
@@ -301,7 +279,7 @@ function Colors(Array) {
     return Array[Math.floor(Math.random() * Array.length)];
 }
 
-function Car(isPlayerCar = false) {
+function Car() {
     const car = new THREE.Group();
 
     const CorCarro = Colors(ListaCores);
@@ -350,87 +328,6 @@ function Car(isPlayerCar = false) {
     cabin.castShadow = true;
     cabin.receiveShadow = true;
     car.add(cabin);
-
-    // Adicionar capô e portas apenas para o carro do jogador
-    if (isPlayerCar) {
-        // Capô articulado (na parte superior da frente do carro)
-        // O eixo de rotação deve estar na beira do vidro (parte traseira do capô)
-        // A parte da frente é que levanta
-        const hoodGroup = new THREE.Group();
-        const hood = new THREE.Mesh(
-            new THREE.BoxGeometry(25, 30, 3), // Comprimento, largura, altura
-            new THREE.MeshLambertMaterial({ color: CorCarro })
-        );
-        // Posicionar o capô: a parte traseira fica fixa (eixo), a frente levanta
-        // O capô vai da beira do vidro até a frente do carro, na parte superior
-        hood.position.x = 12.5; // Metade do comprimento do capô (centro do capô)
-        hood.position.y = 0;
-        hood.position.z = 1.5; // Metade da altura do capô
-        hoodGroup.add(hood);
-        // Eixo de rotação na beira do vidro (parte traseira do capô, próximo à cabine)
-        // A cabine está em x=-6, então o eixo do capô deve estar um pouco à frente dela
-        // O capô deve estar na parte superior do carro (z alto)
-        // O main está em z=12 com altura 15, então o topo está em z=12+7.5=19.5
-        hoodGroup.position.x = 5; // Parte traseira do capô (beira do vidro)
-        hoodGroup.position.y = 0;
-        hoodGroup.position.z = 19.5; // Parte superior do carro (topo do main)
-        hoodGroup.rotation.y = 0; // Inicialmente fechado (rotação em Y, negativo abre para cima)
-        car.add(hoodGroup);
-
-        // Porta esquerda (lado do motorista)
-        // A porta deve rotacionar em torno do eixo Z para abrir para dentro/fora (direção X)
-        const leftDoorGroup = new THREE.Group();
-        const leftDoor = new THREE.Mesh(
-            new THREE.BoxGeometry(3, 20, 12), // Largura, altura, profundidade
-            new THREE.MeshLambertMaterial({ color: CorCarro })
-        );
-        // Posicionar a porta para que quando fechada (rotation.z = 0) ela encoste no carro
-        // O eixo está na lateral do carro (y = -15), então a porta deve estar posicionada
-        // de forma que sua borda externa fique em y = -15 quando fechada
-        leftDoor.position.x = 0;
-        leftDoor.position.y = 1.5; // Metade da largura da porta, posicionada para encostar no carro
-        leftDoor.position.z = 6; // Metade da profundidade da porta
-        leftDoorGroup.add(leftDoor);
-        // Eixo de rotação na lateral esquerda do carro (borda da porta)
-        leftDoorGroup.position.x = 0;
-        leftDoorGroup.position.y = -15; // Lado esquerdo do carro (metade de 30, negativo)
-        leftDoorGroup.position.z = 0;
-        leftDoorGroup.rotation.z = 0; // Inicialmente fechada (rotação em Z para abrir para dentro/fora)
-        car.add(leftDoorGroup);
-
-        // Porta direita (lado do passageiro)
-        const rightDoorGroup = new THREE.Group();
-        const rightDoor = new THREE.Mesh(
-            new THREE.BoxGeometry(3, 20, 12),
-            new THREE.MeshLambertMaterial({ color: CorCarro })
-        );
-        // Posicionar a porta para que quando fechada (rotation.z = 0) ela encoste no carro
-        rightDoor.position.x = 0;
-        rightDoor.position.y = -1.5; // Metade da largura da porta, posicionada para encostar no carro
-        rightDoor.position.z = 6; // Metade da profundidade da porta
-        rightDoorGroup.add(rightDoor);
-        // Eixo de rotação na lateral direita do carro (borda da porta)
-        rightDoorGroup.position.x = 0;
-        rightDoorGroup.position.y = 15; // Lado direito do carro (metade de 30, positivo)
-        rightDoorGroup.position.z = 0;
-        rightDoorGroup.rotation.z = 0; // Inicialmente fechada (rotação em Z para abrir para dentro/fora)
-        car.add(rightDoorGroup);
-
-        // Armazenar referências e estados no userData do carro
-        car.userData = {
-            hoodGroup: hoodGroup,
-            leftDoorGroup: leftDoorGroup,
-            rightDoorGroup: rightDoorGroup,
-            hoodOpen: false,
-            doorsOpen: false,
-            hoodTargetRotation: 0, // 0 = fechado, Math.PI / 2.5 = aberto (~72 graus)
-            hoodCurrentRotation: 0,
-            doorsTargetRotation: 0, // 0 = fechado, Math.PI / 3 = aberto (60 graus)
-            doorsCurrentRotation: 0,
-            hoodRotationSpeed: 0.06, // Velocidade de animação do capô
-            doorsRotationSpeed: 0.05 // Velocidade de animação das portas
-        };
-    }
 
     return car;
 }
@@ -594,68 +491,6 @@ function Tree() {
   return tree;
 }
 
-//.................................. portão articulado.....................................
-
-function ArticulatedGate() {
-  const gate = new THREE.Group();
-
-  // Largura do portão (cobre a largura da pista)
-  const gateWidth = larguraPista * 2 + 20; // Largura da pista + margem
-  const gateHeight = 60; // Altura dos postes
-  const gateBarHeight = 8; // Altura da cancela
-  const gateBarDepth = 6; // Profundidade da cancela
-
-  // Poste esquerdo (suporte fixo) - lado interno da pista
-  const leftPost = new THREE.Mesh(
-    new THREE.BoxGeometry(8, 8, gateHeight),
-    new THREE.MeshLambertMaterial({ color: 0x555555 })
-  );
-  leftPost.position.x = -gateWidth / 2;
-  leftPost.position.z = gateHeight / 2;
-  gate.add(leftPost);
-
-  // Poste direito (suporte fixo) - lado externo da pista
-  const rightPost = new THREE.Mesh(
-    new THREE.BoxGeometry(8, 8, gateHeight),
-    new THREE.MeshLambertMaterial({ color: 0x555555 })
-  );
-  rightPost.position.x = gateWidth / 2;
-  rightPost.position.z = gateHeight / 2;
-  gate.add(rightPost);
-
-  // Cancela articulada (grupo para rotação em torno do eixo do poste esquerdo)
-  const gateArmGroup = new THREE.Group();
-  
-  // Braço da cancela (barra horizontal quando fechada)
-  const gateArm = new THREE.Mesh(
-    new THREE.BoxGeometry(gateWidth, gateBarHeight, gateBarDepth),
-    new THREE.MeshLambertMaterial({ color: 0xFFD700 })
-  );
-  gateArm.position.x = gateWidth / 2; // Centro da cancela
-  gateArm.position.z = gateHeight - 10; // Altura da cancela (próximo ao topo dos postes)
-  gateArmGroup.add(gateArm);
-
-  // Eixo de rotação (dobradiça) - posicionado no poste esquerdo
-  gateArmGroup.position.x = -gateWidth / 2;
-  gateArmGroup.position.z = gateHeight - 10;
-  gateArmGroup.rotation.z = 0; // Inicialmente fechado (horizontal, 0 graus)
-  
-  gate.add(gateArmGroup);
-
-  // Armazenar referências e estado
-  gate.userData = {
-    gateArmGroup: gateArmGroup,
-    isOpen: false,
-    targetRotation: 0, // 0 = fechado (horizontal), Math.PI/2 = aberto (vertical, 90 graus para cima)
-    currentRotation: 0,
-    rotationSpeed: 0.08, // Velocidade de abertura/fechamento (radianos por frame)
-    gateWidth: gateWidth,
-    gatePosition: { x: 0, y: 0, angle: 0 } // Posição do portão na pista
-  };
-
-  return gate;
-}
-
 
 function getLineMarkings(mapWidth, mapHeight) {
   const canvas = document.createElement("canvas");
@@ -706,28 +541,6 @@ function reset() {
     });
     otherVehicles = [];
 
-    // Resetar estado do portão articulado
-    if (articulatedGate && articulatedGate.userData) {
-        articulatedGate.userData.isOpen = false;
-        articulatedGate.userData.targetRotation = 0;
-        articulatedGate.userData.currentRotation = 0;
-        articulatedGate.userData.gateArmGroup.rotation.z = 0;
-    }
-
-    // Resetar estado do capô e portas do carro do jogador
-    if (playerCar && playerCar.userData) {
-        const carData = playerCar.userData;
-        carData.hoodOpen = false;
-        carData.doorsOpen = false;
-        carData.hoodTargetRotation = 0;
-        carData.hoodCurrentRotation = 0;
-        carData.doorsTargetRotation = 0;
-        carData.doorsCurrentRotation = 0;
-        carData.hoodGroup.rotation.y = 0;
-        carData.leftDoorGroup.rotation.z = 0;
-        carData.rightDoorGroup.rotation.z = 0;
-    }
-
     renderer.render(scene, camera);
     ready = true;
 }
@@ -738,89 +551,6 @@ function startGame() {
         ready = false;
         renderer.setAnimationLoop(animation);
     }
-}
-
-function animateArticulatedGate(timeDelta) {
-  if (!articulatedGate || !articulatedGate.userData) return;
-
-  const gateData = articulatedGate.userData;
-  
-  // Animação suave em direção ao ângulo alvo
-  if (Math.abs(gateData.currentRotation - gateData.targetRotation) > 0.01) {
-    const direction = gateData.targetRotation > gateData.currentRotation ? 1 : -1;
-    gateData.currentRotation += direction * gateData.rotationSpeed;
-    
-    // Limitar ao ângulo alvo
-    if ((direction > 0 && gateData.currentRotation >= gateData.targetRotation) ||
-        (direction < 0 && gateData.currentRotation <= gateData.targetRotation)) {
-      gateData.currentRotation = gateData.targetRotation;
-    }
-    
-    gateData.gateArmGroup.rotation.z = gateData.currentRotation;
-  }
-}
-
-function toggleGate() {
-  if (!articulatedGate || !articulatedGate.userData) return;
-  
-  const gateData = articulatedGate.userData;
-  gateData.isOpen = !gateData.isOpen;
-  gateData.targetRotation = gateData.isOpen ? Math.PI / 2 : 0; // 90 graus quando aberto, 0 quando fechado
-}
-
-// Funções para controlar capô e portas do carro do jogador
-function toggleHood() {
-  if (!playerCar || !playerCar.userData) return;
-  
-  const carData = playerCar.userData;
-  carData.hoodOpen = !carData.hoodOpen;
-  carData.hoodTargetRotation = carData.hoodOpen ? Math.PI / 2.5 : 0; // ~72 graus quando aberto
-}
-
-function toggleDoors() {
-  if (!playerCar || !playerCar.userData) return;
-  
-  const carData = playerCar.userData;
-  carData.doorsOpen = !carData.doorsOpen;
-  carData.doorsTargetRotation = carData.doorsOpen ? Math.PI / 3 : 0; // 60 graus quando aberto
-}
-
-function animateCarParts(timeDelta) {
-  if (!playerCar || !playerCar.userData) return;
-  
-  const carData = playerCar.userData;
-  
-  // Animar capô (rotação em Y, negativo para abrir para cima)
-  // O eixo está na beira do vidro (parte traseira), a frente levanta
-  if (Math.abs(carData.hoodCurrentRotation - carData.hoodTargetRotation) > 0.01) {
-    const direction = carData.hoodTargetRotation > carData.hoodCurrentRotation ? 1 : -1;
-    carData.hoodCurrentRotation += direction * carData.hoodRotationSpeed;
-    
-    // Limitar ao ângulo alvo
-    if ((direction > 0 && carData.hoodCurrentRotation >= carData.hoodTargetRotation) ||
-        (direction < 0 && carData.hoodCurrentRotation <= carData.hoodTargetRotation)) {
-      carData.hoodCurrentRotation = carData.hoodTargetRotation;
-    }
-    
-    carData.hoodGroup.rotation.y = -carData.hoodCurrentRotation; // Rotação negativa em Y para abrir para cima
-  }
-  
-  // Animar portas (rotação em Z para abrir para dentro/fora)
-  if (Math.abs(carData.doorsCurrentRotation - carData.doorsTargetRotation) > 0.01) {
-    const direction = carData.doorsTargetRotation > carData.doorsCurrentRotation ? 1 : -1;
-    carData.doorsCurrentRotation += direction * carData.doorsRotationSpeed;
-    
-    // Limitar ao ângulo alvo
-    if ((direction > 0 && carData.doorsCurrentRotation >= carData.doorsTargetRotation) ||
-        (direction < 0 && carData.doorsCurrentRotation <= carData.doorsTargetRotation)) {
-      carData.doorsCurrentRotation = carData.doorsTargetRotation;
-    }
-    
-    // Porta esquerda abre para fora (rotação negativa em Z)
-    carData.leftDoorGroup.rotation.z = -carData.doorsCurrentRotation;
-    // Porta direita abre para fora (rotação positiva em Z)
-    carData.rightDoorGroup.rotation.z = carData.doorsCurrentRotation;
-  }
 }
 
 
@@ -838,21 +568,6 @@ window.addEventListener("keydown", function (event){
 
     if (event.key === "r" || event.key === "R") {
         reset();
-        return;
-    }
-
-    if (event.key === "p" || event.key === "P") {
-        toggleGate();
-        return;
-    }
-
-    if (event.key === "c" || event.key === "C") {
-        toggleHood();
-        return;
-    }
-
-    if (event.key === "v" || event.key === "V") {
-        toggleDoors();
         return;
     }
 });
@@ -892,12 +607,6 @@ function animation(timestamp) {
 
   moveOtherVehicles(timeDelta);
 
-  // Animar portão articulado
-  animateArticulatedGate(timeDelta);
-
-  // Animar capô e portas do carro do jogador
-  animateCarParts(timeDelta);
-
   hitDetection();
 
   renderer.render(scene, camera);
@@ -921,37 +630,10 @@ function movePlayerCar(timeDelta) {
 
 function moveOtherVehicles(timeDelta) {
   otherVehicles.forEach((vehicle) => {
-    const oldAngle = vehicle.angle;
-    
     if (vehicle.clockwise) {
       vehicle.angle -= speed * timeDelta * vehicle.speed;
     } else {
       vehicle.angle += speed * timeDelta * vehicle.speed;
-    }
-
-    // Verificar colisão com portão fechado
-    if (articulatedGate && articulatedGate.userData && !articulatedGate.userData.isOpen) {
-      const gateAngle = articulatedGate.userData.gatePosition.angle || Math.PI / 2;
-      
-      // Normalizar ângulos para comparação (0 a 2π)
-      let vehicleAngleNorm = vehicle.angle;
-      while (vehicleAngleNorm < 0) vehicleAngleNorm += Math.PI * 2;
-      while (vehicleAngleNorm >= Math.PI * 2) vehicleAngleNorm -= Math.PI * 2;
-      
-      let gateAngleNorm = gateAngle;
-      while (gateAngleNorm < 0) gateAngleNorm += Math.PI * 2;
-      while (gateAngleNorm >= Math.PI * 2) gateAngleNorm -= Math.PI * 2;
-      
-      // Calcular diferença angular mínima
-      let angleDiff = Math.abs(vehicleAngleNorm - gateAngleNorm);
-      if (angleDiff > Math.PI) angleDiff = Math.PI * 2 - angleDiff;
-      
-      // Se o veículo está próximo do portão (dentro de um pequeno arco de ~10 graus)
-      // A largura da cancela cobre aproximadamente essa área
-      if (angleDiff < 0.175) { // ~10 graus
-        // Bloquear movimento - reverter para o ângulo anterior
-        vehicle.angle = oldAngle;
-      }
     }
 
     const vehicleX = Math.cos(vehicle.angle) * raioPista + centro1;
