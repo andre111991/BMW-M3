@@ -1,3 +1,5 @@
+//userdata faz com a transiçao seja suave e tenha a sensaçao de movimento, senão é instantaneo
+
 import * as THREE from 'three';
 
 const config = {
@@ -22,18 +24,22 @@ const centro1 =
 
 const angulo3 = Math.acos(centro1 / circunferenciaDentro);
 const angulo4 = Math.acos(centro1 / circunferenciaFora);
+
 const ListaCores = [ 0x00F5FF, 0xFF00FF, 0x7000FF,0xFF5F1F,0x39FF14,0xFF3131 ]
+
 let accelerate = false;
 let decelerate = false;
-const playerCar = Car(true) // true indica que é o carro do jogador
+let articulatedGate = null;
+
+const playerCar = Car(true) // true indica que é o carro do jogador que usa as portas e o capô articulados
 scene.add(playerCar)
 
 //...............................luzes...................................................
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); //cor e intensidade
+const ambientLight = new THREE.AmbientLight(0xffffff, 1); //cor e intensidade
 scene.add(ambientLight)
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(100, -300, 400);
 scene.add(directionalLight);
 
@@ -55,16 +61,14 @@ const camera = new THREE.OrthographicCamera(            // diferente da camera d
 camera.position.set(0,-210,300);
 camera.lookAt(0,0,0);
 
-// Declarar variável do portão antes de renderMap
-let articulatedGate = null;
-
 renderMap(camerawidth, cameraheight*2);
 
 const renderer = new THREE.WebGLRenderer({ antialias:true });
 renderer.setSize(window.innerWidth,window.innerHeight);
-//renderer.render(scene, camera);
 
 document.body.appendChild(renderer.domElement);
+
+//....................................mapa..............................................
 
 function renderMap(mapWidth, mapHeight) {
 
@@ -73,7 +77,7 @@ function renderMap(mapWidth, mapHeight) {
     const planeGeometry = new THREE.PlaneGeometry(mapWidth, mapHeight);
     const planeMaterial = new THREE.MeshLambertMaterial({ map: mapTexture });
 
-    const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    const plane = new THREE.Mesh(planeGeometry, planeMaterial); // cria se o plano e adiciona se a textura = mesh
     scene.add(plane);
 
     const ilhaUM = getilhaUM();
@@ -88,8 +92,8 @@ function renderMap(mapWidth, mapHeight) {
 
   const fieldMesh = new THREE.Mesh(fieldGeometry,[
 
-    new THREE.MeshLambertMaterial({ color: 0x67c240 }),
-    new THREE.MeshLambertMaterial({ color: 0x23311c }),
+    new THREE.MeshLambertMaterial({ color: 0x67c240 }), // verde de cima
+    new THREE.MeshLambertMaterial({ color: 0x23311c }), // verde dos lados 
   ]);
 
   scene.add(fieldMesh);
@@ -286,7 +290,7 @@ function getparteFora(mapWidth, mapHeight) {
 
     parteFora.lineTo(0, -mapHeight / 2);
     parteFora.lineTo(mapWidth / 2, -mapHeight / 2);
-    parteFora.lineTo(mapWidth / 2, mapHeight / 2);
+    parteFora.lineTo(mapWidth / 2, mapHeight / 2);            // isto é o que verdadeiramente desenha o verde 
     parteFora.lineTo(-mapWidth / 2, mapHeight / 2);
 
     return parteFora;
@@ -297,11 +301,11 @@ function getparteFora(mapWidth, mapHeight) {
 //.................................. carro..............
 
 
-function Colors(Array) {
-    return Array[Math.floor(Math.random() * Array.length)];
+function Colors(Array) { 
+    return Array[Math.floor(Math.random() * Array.length)];       //funçao "random" inicialmente usada para escolher a cor do carro depois foi usada para outras coisas, mas mantive o nome
 }
 
-function Car(isPlayerCar = false) {
+function Car(isPlayerCar = false) { //é falso para puder usar o carro sem as portas e o capo no lado do "pc" senao ia ter de usar os carros todos com as portas e o capo
     const car = new THREE.Group();
 
     const CorCarro = Colors(ListaCores);
@@ -319,7 +323,7 @@ function Car(isPlayerCar = false) {
     TexturaFrenteCarro.rotation = Math.PI / 2;
 
     const TexturaTrasCarro = FrontTexture();
-    TexturaTrasCarro.center = new THREE.Vector2(0.5, 0.5);
+    TexturaTrasCarro.center = new THREE.Vector2(0.5, 0.5); // usei para poder rodar a textura senao ele roda como eixo no canto inferior esquerdo e para poder rodar a textura no meio
     TexturaTrasCarro.rotation = -Math.PI / 2;
 
     const TexturaLadoEsquerdoCarro = SideTexture();
@@ -335,85 +339,72 @@ function Car(isPlayerCar = false) {
     const frontWheel = Wheel()
     frontWheel.position.x = 18;
     car.add(frontWheel);
-
-    const cabin = new THREE.Mesh( new THREE.BoxGeometry(33,24,12),[   // map -> mapa de cores // é o que faz as janelas do carro
+                                                        // tamanho do caixote da cabine
+    const cabin = new THREE.Mesh( new THREE.BoxGeometry(33,24,12),[   // map é usado como o color só que serve para embrulhar um objeto 2d em 3d (Canvas das janelas do carro)
         new THREE.MeshLambertMaterial({ map: TexturaFrenteCarro }),
         new THREE.MeshLambertMaterial({ map: TexturaTrasCarro }),
         new THREE.MeshLambertMaterial({ map: TexturaLadoEsquerdoCarro }),
         new THREE.MeshLambertMaterial({ map: TexturaLadoDireitoCarro }),
-        new THREE.MeshLambertMaterial({ color: 0xffffff }), // top
-        new THREE.MeshLambertMaterial({ color: 0xffffff })
+        new THREE.MeshLambertMaterial({ color: 0xffffff }), // teto
+        new THREE.MeshLambertMaterial({ color: 0xffffff }) // debaixo do cubo
     ]);
 
     cabin.position.x=-6
     cabin.position.z=25.5
-    cabin.castShadow = true;
-    cabin.receiveShadow = true;
     car.add(cabin);
 
-    // Adicionar capô e portas apenas para o carro do jogador
+    
     if (isPlayerCar) {
-        // Capô articulado (na parte superior da frente do carro)
-        // O eixo de rotação deve estar na beira do vidro (parte traseira do capô)
-        // A parte da frente é que levanta
         const hoodGroup = new THREE.Group();
         const hood = new THREE.Mesh(
-            new THREE.BoxGeometry(25, 30, 3), // Comprimento, largura, altura
+            new THREE.BoxGeometry(25, 30, 3), 
             new THREE.MeshLambertMaterial({ color: CorCarro })
         );
-        // Posicionar o capô: a parte traseira fica fixa (eixo), a frente levanta
-        // O capô vai da beira do vidro até a frente do carro, na parte superior
         hood.position.x = 12.5; // Metade do comprimento do capô (centro do capô)
         hood.position.y = 0;
         hood.position.z = 1.5; // Metade da altura do capô
         hoodGroup.add(hood);
-        // Eixo de rotação na beira do vidro (parte traseira do capô, próximo à cabine)
-        // A cabine está em x=-6, então o eixo do capô deve estar um pouco à frente dela
-        // O capô deve estar na parte superior do carro (z alto)
-        // O main está em z=12 com altura 15, então o topo está em z=12+7.5=19.5
+        
         hoodGroup.position.x = 5; // Parte traseira do capô (beira do vidro)
         hoodGroup.position.y = 0;
         hoodGroup.position.z = 19.5; // Parte superior do carro (topo do main)
         hoodGroup.rotation.y = 0; // Inicialmente fechado (rotação em Y, negativo abre para cima)
         car.add(hoodGroup);
 
-        // Porta esquerda (lado do motorista)
-        // A porta deve rotacionar em torno do eixo Z para abrir para dentro/fora (direção X)
+      
         const leftDoorGroup = new THREE.Group();
         const leftDoor = new THREE.Mesh(
             new THREE.BoxGeometry(3, 20, 12), // Largura, altura, profundidade
             new THREE.MeshLambertMaterial({ color: CorCarro })
         );
-        // Posicionar a porta para que quando fechada (rotation.z = 0) ela encoste no carro
-        // O eixo está na lateral do carro (y = -15), então a porta deve estar posicionada
-        // de forma que sua borda externa fique em y = -15 quando fechada
+        
         leftDoor.position.x = 0;
-        leftDoor.position.y = 1.5; // Metade da largura da porta, posicionada para encostar no carro
-        leftDoor.position.z = 6; // Metade da profundidade da porta
+        leftDoor.position.y = 1.5; 
+        leftDoor.position.z = 6; 
         leftDoorGroup.add(leftDoor);
-        // Eixo de rotação na lateral esquerda do carro (borda da porta)
+        
         leftDoorGroup.position.x = 0;
-        leftDoorGroup.position.y = -15; // Lado esquerdo do carro (metade de 30, negativo)
+        leftDoorGroup.position.y = -15; 
         leftDoorGroup.position.z = 0;
-        leftDoorGroup.rotation.z = 0; // Inicialmente fechada (rotação em Z para abrir para dentro/fora)
+        leftDoorGroup.rotation.z = 0; 
         car.add(leftDoorGroup);
 
-        // Porta direita (lado do passageiro)
+        
         const rightDoorGroup = new THREE.Group();
         const rightDoor = new THREE.Mesh(
             new THREE.BoxGeometry(3, 20, 12),
             new THREE.MeshLambertMaterial({ color: CorCarro })
         );
-        // Posicionar a porta para que quando fechada (rotation.z = 0) ela encoste no carro
+        
         rightDoor.position.x = 0;
-        rightDoor.position.y = -1.5; // Metade da largura da porta, posicionada para encostar no carro
-        rightDoor.position.z = 6; // Metade da profundidade da porta
+        rightDoor.position.y = -1.5; 
+        rightDoor.position.z = 6; 
         rightDoorGroup.add(rightDoor);
-        // Eixo de rotação na lateral direita do carro (borda da porta)
+        
         rightDoorGroup.position.x = 0;
-        rightDoorGroup.position.y = 15; // Lado direito do carro (metade de 30, positivo)
+        rightDoorGroup.position.y = 15; 
         rightDoorGroup.position.z = 0;
-        rightDoorGroup.rotation.z = 0; // Inicialmente fechada (rotação em Z para abrir para dentro/fora)
+        rightDoorGroup.rotation.z = 0; 
         car.add(rightDoorGroup);
 
         // Armazenar referências e estados no userData do carro
@@ -452,7 +443,7 @@ function FrontTexture(){
     const context = canvas.getContext("2d");
 
     context.fillStyle = "#ffffff";
-    context.fillRect(0,0,64,32);
+    context.fillRect(0,0,64,32); //(x, y, largura, altura)
 
     context.fillStyle = "#666666";
     context.fillRect(8,8,48,24);
@@ -497,8 +488,6 @@ function Truck() {
 
     trailer.position.x = -15;
     trailer.position.z = 30;
-    trailer.castShadow = true;
-    trailer.receiveShadow = true;
     truck.add(trailer);
 
     const backWheel = Wheel();
@@ -533,8 +522,6 @@ function Truck() {
 
     cabin.position.x = 40;
     cabin.position.z = 20;
-    cabin.castShadow = true;
-    cabin.receiveShadow = true;
     truck.add(cabin);
 
     return truck;
@@ -577,8 +564,6 @@ function Tree() {
 
   const tronco = new THREE.Mesh (new THREE.BoxGeometry(15, 15, 30), new THREE.MeshLambertMaterial({color: 0x4b3f2f }));
   tronco.position.z = 10;
-  tronco.castShadow = true;
-  tronco.receiveShadow = true;
   tronco.matrixAutoUpdate = false;
   tree.add(tronco);
 
@@ -587,8 +572,6 @@ function Tree() {
 
   const crown = new THREE.Mesh(new THREE.SphereGeometry(height / 2, 30, 30), new THREE.MeshLambertMaterial({ color: 0x498c2c}));
   crown.position.z = height / 2 + 30;
-  crown.castShadow = true;
-  crown.receiveShadow = false;
   tree.add(crown);
 
   return tree;
@@ -608,7 +591,7 @@ function ArticulatedGate() {
   // Poste esquerdo (suporte fixo) - lado interno da pista
   const leftPost = new THREE.Mesh(
     new THREE.BoxGeometry(8, 8, gateHeight),
-    new THREE.MeshLambertMaterial({ color: 0x555555 })
+    new THREE.MeshLambertMaterial({ color: 0x555555 }) // cor do poste
   );
   leftPost.position.x = -gateWidth / 2;
   leftPost.position.z = gateHeight / 2;
@@ -623,7 +606,7 @@ function ArticulatedGate() {
   rightPost.position.z = gateHeight / 2;
   gate.add(rightPost);
 
-  // Cancela articulada (grupo para rotação em torno do eixo do poste esquerdo)
+  
   const gateArmGroup = new THREE.Group();
   
   // Braço da cancela (barra horizontal quando fechada)
@@ -657,23 +640,23 @@ function ArticulatedGate() {
 }
 
 
-function getLineMarkings(mapWidth, mapHeight) {
+function getLineMarkings(mapWidth, mapHeight) {  // função para desenhar as linhas do mapa
   const canvas = document.createElement("canvas");
   canvas.width = mapWidth;
   canvas.height = mapHeight;
   const context = canvas.getContext("2d");
 
   context.fillStyle = "#546E90";
-  context.fillRect(0, 0, mapWidth, mapHeight);
+  context.fillRect(0, 0, mapWidth, mapHeight); // Cria o retangulo por debaixo das linhas e do verde (x, y, largura, altura)
 
-  context.lineWidth = 2;
+  context.lineWidth = 2; // espessura da linha
   context.strokeStyle = "#E0FFFF";
-  context.setLineDash([10, 14]);
+  context.setLineDash([10, 14]); // define a linha tracejada [tamanho do traço, espaço entre traços]
 
 // Circulo Esquerdo
-  context.beginPath();
+  context.beginPath(); // torna o desenho independente
   context.arc( mapWidth / 2 - centro1, mapHeight / 2, raioPista, 0, Math.PI * 2 );
-  context.stroke();
+  context.stroke(); // desenha a linha
 
   // Círculo Direito
   context.beginPath();
@@ -682,6 +665,8 @@ function getLineMarkings(mapWidth, mapHeight) {
 
   return new THREE.CanvasTexture(canvas);
 }
+
+//.................................. Logica do jogo .....................................
 
 let ready;
 let playerAngleMoved;
@@ -695,8 +680,8 @@ const speed = 0.0017;
 reset();
 
 function reset() {
-    playerAngleMoved = 0;
-    movePlayerCar(0);
+    playerAngleMoved = 0;  // posiciona o carro do jogador no angulo inicial
+    movePlayerCar(0); // atualiza a posiçao do carro do jogador para onde ele começa
     score = 0;
     scoreElement.innerText = score;
     lastTimestamp = undefined;
@@ -704,7 +689,7 @@ function reset() {
     otherVehicles.forEach((vehicle) => {
         scene.remove(vehicle.mesh);
     });
-    otherVehicles = [];
+    otherVehicles = []; // apaga os carros existentes
 
     // Resetar estado do portão articulado
     if (articulatedGate && articulatedGate.userData) {
@@ -713,6 +698,8 @@ function reset() {
         articulatedGate.userData.currentRotation = 0;
         articulatedGate.userData.gateArmGroup.rotation.z = 0;
     }
+
+    //............................................................................................................................
 
     // Resetar estado do capô e portas do carro do jogador
     if (playerCar && playerCar.userData) {
@@ -870,7 +857,7 @@ window.addEventListener("keyup", function (event){
 });
 
 function animation(timestamp) {
-  if (!lastTimestamp) {
+  if (!lastTimestamp) {             // se nao houver ultimo timestamp guarda este como ultimo
     lastTimestamp = timestamp;
     return;
   }
@@ -906,17 +893,19 @@ function animation(timestamp) {
 
 function movePlayerCar(timeDelta) {
   const playerSpeed = getPlayerSpeed();
-  playerAngleMoved -= playerSpeed * timeDelta;
+  playerAngleMoved -= playerSpeed * timeDelta;  // guarda numero de graus que andou
 
-  const totalPlayerAngle = playerAngleInitial + playerAngleMoved;
+  const totalPlayerAngle = playerAngleInitial + playerAngleMoved; // diz o ponto exato onde esta o carro 
 
-  const playerX = Math.cos(totalPlayerAngle) * raioPista - centro1;
+  const playerX = Math.cos(totalPlayerAngle) * raioPista - centro1; // coordenadas do sitio inicial onde o carro esta
   const playerY = Math.sin(totalPlayerAngle) * raioPista;
 
   playerCar.position.x = playerX;
   playerCar.position.y = playerY;
 
-  playerCar.rotation.z = totalPlayerAngle - Math.PI / 2;
+  playerCar.rotation.z = totalPlayerAngle - Math.PI / 2; // Como estamos a mover o carro através de ângulos polares, o valor de totalPlayerAngle 
+  // aponta do centro para o carro (o raio). No entanto, para o carro parecer que está a conduzir pela estrada, ele deve estar orientado pela tangente da curva. Como a tangente é perpendicular ao raio,~
+  //  subtraímos pi-meios radianos (90 graus) para alinhar o modelo 3D com a direção do movimento 
 }
 
 function moveOtherVehicles(timeDelta) {
